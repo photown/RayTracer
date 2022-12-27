@@ -138,33 +138,43 @@ void init() {
 
 }
 
-void transformvec(const float input[4], float output[4])
+void transformvec4(const vec4& input, vec4& output)
 {
-    glm::vec4 inputvec(input[0], input[1], input[2], input[3]);
-
-    glm::vec4 outputvec = modelview * inputvec;
-
-    output[0] = outputvec[0];
-
-    output[1] = outputvec[1];
-
-    output[2] = outputvec[2];
-
-    output[3] = outputvec[3];
+    glm::vec4 outputvec = modelview * input;
+    output.x = outputvec.x;
+    output.y = outputvec.y;
+    output.z = outputvec.z;
+    output.w = outputvec.w;
 }
 
-bool Intersect(Ray* ray, vector<object*> objects, vec3* result) {
+void transformvec3(const vec3& input, vec3& output)
+{
+    glm::vec4 outputvec = modelview * glm::vec4(input, 1.0f);
+    output.x = outputvec.x;
+    output.y = outputvec.y;
+    output.z = outputvec.z;
+}
+
+void Intersect(Ray* ray, vector<object*> objects, Intersection* result) {
+    result->isHit = false;
     for (object* object : objects) {
+        mat4 matrix = object->transform * modelview;
         if (object->type == ShapeSphere) {
             float t;
             bool found = false;
             vec3 p0 = ray->origin;
             vec3 p1 = ray->direction;
             float a = glm::dot(p1, p1);
-            tempVec.x = object->transform[3][0];
-            tempVec.y = object->transform[3][1];
-            tempVec.z = object->transform[3][2];
-            vec3 center = tempVec;
+
+            tempVec.x = 0;
+            tempVec.y = 0;
+            tempVec.z = 0;
+            //todo: add rotation transformation
+           // vec3 temp;
+           // transformvec3(tempVec, temp);
+          //  vec3 center = glm::vec3(object->transform * glm::vec4(temp, 1.0f));
+            vec3 center = vec3(matrix * glm::vec4(tempVec, 1.0f)); // center is in camera coords
+
             float b = 2 * glm::dot(p1, (p0 - center));
             float c = glm::dot((p0 - center), (p0 - center)) - object->size * object->size;
             float D = b * b - 4 * a * c;
@@ -197,32 +207,68 @@ bool Intersect(Ray* ray, vector<object*> objects, vec3* result) {
                // continue;
             }
             if (found) {
-                vec3 res = (p0 + p1 * t);
-                result->x = res.x;
-                result->y = res.y;
-                result->z = res.z;
-                return true;
+                //result->isHit = true;
+                //result->object = object;
+                //vec4 cent;
+                //transformvec4(object->transform * glm::vec4(0, 0, 0, 1), cent);
+                //cent.x += object->size;
+                //result->hitVector = glm::vec3(cent); // hit vector in camera coords
+
+               // vec3 normal;
+               ////vec3 cent2;
+               // //transformvec3(glm::vec3(object->transform * glm::vec4(center, 1.0f)), center); // center is sphere center in camera coords
+               // normal = glm::normalize(result->hitVector - center); // normal vector in camera coords
+               // result->hitNormal.x = normal.x;
+               // result->hitNormal.y = normal.y;
+               // result->hitNormal.z = normal.z;
+               // result->isHit = true;
+
+
+
+                result->hitVector = p0 + p1 * t;
+                result->isHit = true;
+                result->object = object;
+                result->hitNormal = glm::normalize(vec3(result->hitVector - center));
+
+
+
+
+
+                /*vec3 res;
+                transformvec3(p0 + p1 * t, res);
+                result->hitVector.x = res.x;
+                result->hitVector.y = res.y;
+                result->hitVector.z = res.z;
+                result->isHit = true;
+                result->object = object;
+                vec3 normal;
+                transformvec3(glm::normalize(result->hitVector - center), normal);
+                result->hitNormal.x = normal.x;
+                result->hitNormal.y = normal.y;
+                result->hitNormal.z = normal.z;*/
+                return;
             }
         }
         else {
             // TODO: add triangles
         }
     }
-    return false;
+    return;
 }
 
 Ray* RayThruPixel(Camera* camera, int x, int y) {
-    const vec3 a = eye - center;
+    const vec3 a = /*eye*/ - vec3(modelview * vec4(center, 1.0f));
     const vec3 b = up;
     const vec3 w = glm::normalize(a);
     const vec3 u = glm::normalize(glm::cross(b, w));
     const vec3 v = glm::cross(w, u);
     const float aspect = ((float)width) / height;
-    const float fovx = 2 * atan(tan(camera->fovy * 0.5) * aspect);
+    float fovyrad = glm::radians(camera->fovy);
+    const float fovx = 2 * atan(tan(fovyrad * 0.5) * aspect);
     const float alpha = tan(fovx * 0.5) * (x - (width * 0.5)) / (width * 0.5);
-    const float beta = tan(fovy * 0.5) * ((height * 0.5) - y) / (height * 0.5);
+    const float beta = tan(fovyrad * 0.5) * ((height * 0.5) - y) / (height * 0.5);
 
-    return new Ray(/* origin= */ eye, /* direction= */ glm::normalize(alpha * u + beta * v - w));
+    return new Ray(/* origin= */ vec3(), /* direction= */ vec3(modelview * vec4(glm::normalize(alpha * u + beta * v - w), 1.0f)));
 
 
     //const mat4 resultRotation(u.x, v.x, w.x, 0, u.y, v.y, w.y, 0, u.z, v.z, w.z, 0, 0, 0, 0, 1);
@@ -233,25 +279,76 @@ Ray* RayThruPixel(Camera* camera, int x, int y) {
     //return resultRotation * resultTranslation;
 }
 
+vec4* lighttemp = new vec4();
+
+void getColor(vector<Light*> lights, vec4* result, Intersection* intersection) {
+    vec4 color = glm::vec4();
+    color.x  = intersection->object->ambient[0] + intersection->object->emission[0];
+    color.y = intersection->object->ambient[1] + intersection->object->emission[1];
+    color.z = intersection->object->ambient[2] + intersection->object->emission[2];
+    color.w = intersection->object->ambient[3] + intersection->object->emission[3];
+
+    for (int i = 0; i < lights.size(); i++) {
+        Light* light = lights[i];
+        // run a ray from contact point to light
+        // if there are no intersections, add the light stuff
+
+        vec4 diffuse = vec4(
+            intersection->object->diffuse[0], 
+            intersection->object->diffuse[1], 
+            intersection->object->diffuse[2], 
+            intersection->object->diffuse[3]);
+        vec4 specular = vec4(
+            intersection->object->specular[0],
+            intersection->object->specular[1],
+            intersection->object->specular[2],
+            intersection->object->specular[3]);
+        vec3 lightDir = glm::normalize(glm::vec3(light->lighttransf) - intersection->hitVector);
+        vec3 halfAngle = glm::normalize( glm::normalize(/*eye*/ - intersection->hitVector) + lightDir); // can be plus here
+        color +=
+            light->color *
+            (
+                diffuse
+                * glm::max(
+                    glm::dot(intersection->hitNormal, lightDir), 0.0f)
+                
+                + 
+                specular
+                * glm::pow(glm::max(glm::dot(intersection->hitNormal, halfAngle), 0.0f), intersection->object->shininess));
+        color.x = glm::min(color.x, 1.0f);
+        color.y = glm::min(color.y, 1.0f);
+        color.z = glm::min(color.z, 1.0f);
+        color.w = glm::min(color.w, 1.0f);
+    }
+
+    result->x = color.x;
+    result->y = color.y;
+    result->z = color.z;
+    result->w = color.w;
+}
+
 unsigned char* Raytrace(Camera* camera, vector<object*> objects, int width, int height) {
     unsigned char* pixels = new unsigned char[3 * width * height];
+    Intersection* intersection = new Intersection();
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             pixels[x * 3 + y * width * 3] = (unsigned char) 0;
             pixels[x * 3 + y * width * 3 + 1] = (unsigned char) 0;
             pixels[x * 3 + y * width * 3 + 2] = (unsigned char) 0;
             Ray* ray = RayThruPixel(camera, x, y);
-            bool isHit = Intersect(ray, objects, &hitVec);
-            if (isHit) {
+            Intersect(ray, objects, intersection);
+            if (intersection->isHit) {
                // cout << "IS HIT!! " << isHit << endl;
             }
-            if (isHit) {
-                pixels[x * 3 + y * width * 3] = (unsigned char) 255;
-                pixels[x * 3 + y * width * 3 + 1] = (unsigned char) 255;
-                pixels[x * 3 + y * width * 3 + 2] = (unsigned char) 255;
+            if (intersection->isHit) {
+                getColor(lights, lighttemp, intersection);
+                pixels[x * 3 + y * width * 3] = (unsigned char)(lighttemp->x * 255);
+                pixels[x * 3 + y * width * 3 + 1] = (unsigned char)(lighttemp->y * 255);
+                pixels[x * 3 + y * width * 3 + 2] = (unsigned char)(lighttemp->z * 255);
             }
         }
     }
+    delete intersection;
     return pixels;
 }
 
@@ -269,8 +366,8 @@ int main(int argc, char* argv[]) {
   printHelp();
 
   modelview = Transform::lookAt(eye, center, up);
-  for (int i = 0; i < numused; i++) {
-      transformvec(&lightposn[i * 4], &lightransf[i * 4]);
+  for (int i = 0; i < lights.size(); i++) {
+      transformvec4(lights[i]->position, lights[i]->lighttransf);
   }
   cout << "WTF -------------------" << endl;
   unsigned char* pixels = Raytrace(camera, objects, width, height);

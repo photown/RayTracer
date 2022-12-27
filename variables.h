@@ -49,8 +49,7 @@ vec3 upinit(0.0,1.0,0.0) ; // Initial up position, also for resets
 vec3 center(0.0,0.0,0.0) ; // Center look at point 
 int amountinit = 5;
 int width = 500, height = 500 ; // width and height 
-float fovy = 90.0 ; // For field of view
-Camera* camera = new Camera(eyeinit, upinit, center, fovy);
+Camera* camera = new Camera(eyeinit, upinit, center, /* fov= */ 90.0);
 #else  
 EXTERN int amountinit;
 EXTERN int width, height ; 
@@ -63,13 +62,6 @@ static enum {view, translate, scale} transop ; // which operation to transform
 enum shape {ShapeCube, ShapeSphere, ShapeTeapot} ;
 EXTERN float sx, sy ; // the scale in x and y 
 EXTERN float tx, ty ; // the translation in x and y
-
-// Lighting parameter array, similar to that in the fragment shader
-const int numLights = 10 ; 
-EXTERN float lightposn [4*numLights] ; // Light Positions
-EXTERN float lightcolor[4*numLights] ; // Light Colors
-EXTERN float lightransf[4*numLights] ; // Lights transformed by modelview
-EXTERN int numused ;                     // How many lights are used 
 
 // Materials (read from file) 
 // With multiple objects, these are colors for each.
@@ -100,7 +92,22 @@ EXTERN struct sphere : object {
 };
 
 EXTERN vector<object*> objects;
-//EXTERN object* objects[maxobjects];
+
+EXTERN struct Light {
+    float intensity = 1; // between 0 and 1
+    vec4 position; //xyzw
+    vec4 color; //rgba
+    vec4 lighttransf;  // Light transformed by modelview
+};
+
+EXTERN struct Intersection {
+    bool isHit;
+    object* object;
+    vec3 hitVector;
+    vec3 hitNormal;
+};
+
+EXTERN vector<Light*> lights;
 
 // Variables to set uniform params for lighting fragment shader 
 EXTERN unsigned int lightcol ; 

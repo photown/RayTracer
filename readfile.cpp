@@ -109,25 +109,12 @@ void readfile(const char* filename)
                 // Process the light, add it to database.
                 // Lighting Command
                 if (cmd == "light") {
-                    if (numused == numLights) { // No more Lights 
-                        cerr << "Reached Maximum Number of Lights " << numused << " Will ignore further lights\n";
-                    }
-                    else {
-                        validinput = readvals(s, 8, values); // Position/color for lts.
-                        if (validinput) {
-
-                            // YOUR CODE FOR HW 2 HERE. 
-                            // Note that values[0...7] shows the read in values 
-                            // Make use of lightposn[] and lightcolor[] arrays in variables.h
-                            // Those arrays can then be used in display too.  
-                            for (i = 0; i < 4; i++) {
-                                lightposn[numused * 4 + i] = values[i];
-                            }
-                            for (i = 0; i < 4; i++) {
-                                lightcolor[numused * 4 + i] = values[4 + i];
-                            }
-                            ++numused;
-                        }
+                    validinput = readvals(s, 8, values); // Position/color for lts.
+                    if (validinput) {
+                        Light* light = new Light();
+                        light->position = vec4(values[0], values[1], values[2], values[3]);
+                        light->color = vec4(values[4], values[5], values[6], values[7]);
+                        lights.push_back(light);
                     }
                 }
 
