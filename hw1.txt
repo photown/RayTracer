@@ -3,10 +3,10 @@
 # Materials come next 
 # Teapot geometry specified at end
 
-size 800 400
+size 800 600
 camera 0 0 4 0 0 0 0 1 1 30.0
 
-light 500 0 0 1 1.0 1.0 1.0 1.0 
+light 100 0 0 1 1.0 1.0 1.0 1.0 
 #light -25 15 10 1 1.0 1.0 1.0 1 
 
 
@@ -15,9 +15,15 @@ diffuse 0.2 0.2 0.2 1
 specular 0.5 0.5 0.5 1
 shininess 100
 
-sphere 0.1
+#sphere 0.1
 
 pushTransform
-    translate 0.3 0 0 
+    translate -1.5 0 0 
+ #   sphere 0.5
+popTransform
+
+
+pushTransform
+    translate 0.2 0 0 
     sphere 0.1
 popTransform
