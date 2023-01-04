@@ -59,36 +59,50 @@ EXTERN Camera* camera ;
 EXTERN bool useGlu; // Toggle use of "official" opengl/glm transform vs user 
 EXTERN mat4 projection, modelview; // The mvp matrices
 static enum {view, translate, scale} transop ; // which operation to transform 
-enum shape {ShapeCube, ShapeSphere, ShapeTeapot} ;
+enum shape {ShapeCube, ShapeTriangle, ShapeSphere, ShapeTeapot} ;
 EXTERN float sx, sy ; // the scale in x and y 
 EXTERN float tx, ty ; // the translation in x and y
 
 // Materials (read from file) 
 // With multiple objects, these are colors for each.
-EXTERN float ambient[4] ; 
-EXTERN float diffuse[4] ; 
-EXTERN float specular[4] ; 
-EXTERN float emission[4] ; 
+EXTERN float ambient[3] ; 
+EXTERN float diffuse[3] ; 
+EXTERN float specular[3] ; 
+EXTERN float emission[3] ; 
 EXTERN float shininess ; 
+EXTERN vec3 attenuation;
 
 // For multiple objects, read from a file.  
 const int maxobjects = 10 ; 
 EXTERN int numobjects ; 
 EXTERN struct object {
   shape type ; 
-  float size ;
-  float ambient[4] ; 
-  float diffuse[4] ; 
-  float specular[4] ;
-  float emission[4] ; 
+  float ambient[3] ; 
+  float diffuse[3] ; 
+  float specular[3] ;
+  float emission[3] ; 
   float shininess ;
   mat4 transform ; 
 
   virtual ~object() {}
 };
 
-EXTERN struct sphere : object {
+EXTERN struct Sphere : object {
+    float radius;
+    vec3 center;
+};
 
+EXTERN struct Triangle : object {
+    int index1;
+    int index2;
+    int index3;
+    bool hasNormals;
+    Triangle(int index1, int index2, int index3, bool hasNormals) {
+        this->index1 = index1;
+        this->index2 = index2;
+        this->index3 = index3;
+        this->hasNormals = hasNormals;
+    }
 };
 
 EXTERN vector<object*> objects;
@@ -98,6 +112,7 @@ EXTERN struct Light {
     vec4 position; //xyzw
     vec4 color; //rgba
     vec4 lighttransf;  // Light transformed by modelview
+    vec3 attenuation;
 };
 
 EXTERN struct Intersection {
@@ -108,6 +123,11 @@ EXTERN struct Intersection {
 };
 
 EXTERN vector<Light*> lights;
+EXTERN int maxdepth;
+EXTERN string outputLocation;
+
+EXTERN vector<vec3*> vertices;
+EXTERN vector<pair<vec3*, vec3*>*> vertexnormals;
 
 // Variables to set uniform params for lighting fragment shader 
 EXTERN unsigned int lightcol ; 
