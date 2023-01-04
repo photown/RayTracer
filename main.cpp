@@ -269,19 +269,24 @@ void Intersect(Ray* ray, vector<object*> objects, Intersection* result, object* 
                     if (t < 0) {
                         // no intersection because ray goes away from triange plane
                     }
-                    vec3 Phit = ray->origin + t * ray->direction;
-                    vec3 edge1 = vertex2 - vertex1;
-                    vec3 edge2 = vertex3 - vertex2;
-                    vec3 edge3 = vertex1 - vertex3;
-                    vec3 c1 = Phit - vertex1;
-                    vec3 c2 = Phit - vertex2;
-                    vec3 c3 = Phit - vertex3;
-                    if (glm::dot(N, glm::cross(edge1, c1)) > 0
-                        && glm::dot(N, glm::cross(edge2, c2)) > 0
-                        && glm::dot(N, glm::cross(edge3, c3)) > 0) {
-                        found = true;
-                        hitVector = Phit;
-                        hitNormal = N;
+                    else {
+                        vec3 Phit = ray->origin + t * ray->direction;
+                        vec3 edge1 = vertex2 - vertex1;
+                        vec3 edge2 = vertex3 - vertex2;
+                        vec3 edge3 = vertex1 - vertex3;
+                        vec3 c1 = Phit - vertex1;
+                        vec3 c2 = Phit - vertex2;
+                        vec3 c3 = Phit - vertex3;
+                        //cout << "dot 1 = " << glm::dot(N, glm::cross(edge1, c1)) << endl;
+                        //cout << "dot 2 = " << glm::dot(N, glm::cross(edge2, c2)) << endl;
+                        //cout << "dot 3 = " << glm::dot(N, glm::cross(edge3, c3)) << endl;
+                        if (glm::dot(N, glm::cross(edge1, c1)) >= 0
+                                && glm::dot(N, glm::cross(edge2, c2)) >= 0
+                                && glm::dot(N, glm::cross(edge3, c3)) >= 0) {
+                            found = true;
+                            hitVector = Phit;
+                            hitNormal = N;
+                        }
                     }
                 }
 
@@ -354,13 +359,13 @@ void getColor(vector<Light*> lights, vec4* result, Intersection* intersection) {
 
         vec3 hitVectorCameraView = vec3(modelview * vec4(intersection->hitVector, 1));
         vec3 hitNormalCameraView = vec3(modelview * vec4(intersection->hitNormal, 1));
-        vec3 lightDir = glm::normalize(hitVectorCameraView - vec3(light->lighttransf));
-       // Ray* ray = new Ray(intersection->hitVector, lightDir); // TODO add the hit vec offset
-       // Intersection* lightIntersection = new Intersection();
-       // Intersect(ray, objects, lightIntersection, /* ignore= */ intersection->object);
-       /* if (lightIntersection->isHit) {
-            continue;
-        }*/
+        vec3 lightDir = glm::normalize(intersection->hitVector - vec3(light->position));
+        //Ray* ray = new Ray(intersection->hitVector, lightDir); // TODO add the hit vec offset
+        //Intersection* lightIntersection = new Intersection();
+        //Intersect(ray, objects, lightIntersection, /* ignore= */ intersection->object);
+        //if (lightIntersection->isHit) {
+        //    continue;
+        //}
 
         vec3 diffuse = vec3(
             intersection->object->diffuse[0], 
@@ -375,8 +380,8 @@ void getColor(vector<Light*> lights, vec4* result, Intersection* intersection) {
         
       //  vec3 test2 = normalize(vec3(light->lighttransf));
        // vec3 test = normalize(vec3(modelview * vec4(intersection->hitNormal, 1.0f)));
-
-        vec3 halfAngle = normalize(glm::normalize(-hitVectorCameraView) + lightDir);
+        vec3 lightDirCameraView = glm::normalize(hitVectorCameraView - vec3(light->lighttransf));
+        vec3 halfAngle = normalize(glm::normalize(-hitVectorCameraView) + lightDirCameraView);
         float attenuation = getAttenuation(light->intensity, /* isDirectional */ (light->position.w == 0), (vec3(light->lighttransf) - hitVectorCameraView).length(), light->attenuation);
         color +=
             vec4(vec3(light->color) *
@@ -384,7 +389,7 @@ void getColor(vector<Light*> lights, vec4* result, Intersection* intersection) {
                 (
                     diffuse
                     * glm::max(
-                        glm::dot(hitNormalCameraView, lightDir), 0.0f)
+                        glm::dot(hitNormalCameraView, lightDirCameraView), 0.0f)
                 + 
                 specular
                 * glm::pow(glm::max(glm::dot(hitNormalCameraView, halfAngle), 0.0f), intersection->object->shininess)), 1.0f);
@@ -412,8 +417,8 @@ unsigned char* Raytrace(Camera* camera, vector<object*> objects, int width, int 
     Intersection* intersection = new Intersection();
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-    //int x = 570;
-    //int y = 164;
+    //int x = 345;
+    //int y = 215;
 
 
         pixels[x * 3 + y * width * 3] = (unsigned char)0;
@@ -430,7 +435,7 @@ unsigned char* Raytrace(Camera* camera, vector<object*> objects, int width, int 
             pixels[x * 3 + y * width * 3 + 1] = (unsigned char)(lighttemp->y * 255);
             pixels[x * 3 + y * width * 3 + 2] = (unsigned char)(lighttemp->z * 255);
         }
-        }
+       }
     }
     delete intersection;
     return pixels;
