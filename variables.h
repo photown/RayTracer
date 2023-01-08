@@ -46,10 +46,9 @@ EXTERN struct Ray {
 #ifdef MAINPROGRAM 
 vec3 eyeinit(0.0,0.0,5.0) ; // Initial eye position, also for resets
 vec3 upinit(0.0,1.0,0.0) ; // Initial up position, also for resets
-vec3 center(0.0,0.0,0.0) ; // Center look at point 
 int amountinit = 5;
 int width = 500, height = 500 ; // width and height 
-Camera* camera = new Camera(eyeinit, upinit, center, /* fov= */ 90.0);
+Camera* camera = new Camera(eyeinit, upinit, vec3(0.0, 0.0, 0.0), /* fov= */ 90.0);
 #else  
 EXTERN int amountinit;
 EXTERN int width, height ; 
@@ -58,6 +57,7 @@ EXTERN Camera* camera ;
 
 EXTERN bool useGlu; // Toggle use of "official" opengl/glm transform vs user 
 EXTERN mat4 projection, modelview; // The mvp matrices
+EXTERN mat3 normal_modelview;
 static enum {view, translate, scale} transop ; // which operation to transform 
 enum shape {ShapeCube, ShapeTriangle, ShapeSphere, ShapeTeapot} ;
 EXTERN float sx, sy ; // the scale in x and y 
@@ -73,8 +73,6 @@ EXTERN float shininess ;
 EXTERN vec3 attenuation;
 
 // For multiple objects, read from a file.  
-const int maxobjects = 10 ; 
-EXTERN int numobjects ; 
 EXTERN struct object {
   shape type ; 
   float ambient[3] ; 
@@ -83,7 +81,8 @@ EXTERN struct object {
   float emission[3] ; 
   float shininess ;
   mat4 transform ; 
-
+  mat3 normal_transform;
+  mat4 transform_inverse;
   virtual ~object() {}
 };
 
@@ -120,6 +119,7 @@ EXTERN struct Intersection {
     object* object;
     vec3 hitVector;
     vec3 hitNormal;
+    vec3 rayDir;
 };
 
 EXTERN vector<Light*> lights;

@@ -79,6 +79,8 @@ void setupCommonObjectProperties(object* obj, mat4& transform, shape shape) {
     }
     obj->shininess = shininess;
     obj->transform = transform;
+    obj->normal_transform = mat3(glm::transpose(glm::inverse(transform)));
+    obj->transform_inverse = glm::inverse(transform);
     obj->type = shape;
 }
 
@@ -193,19 +195,13 @@ void readfile(const char* filename)
                 // you can get a sense of how this works.  
                 // Also look at demo.txt to get a sense of why things are done this way.
                 else if (cmd == "sphere") {
-                    if (numobjects == maxobjects) { // No more objects 
-                        cerr << "Reached Maximum Number of Objects " << numobjects << " Will ignore further objects\n";
-                    }
-                    else {
-                        validinput = readvals(s, 4, values);
-                        if (validinput) {
-                            Sphere* sphere = new Sphere();
-                            sphere->center = vec3(values[0], values[1], values[2]);
-                            sphere->radius = values[3];                            
-                            setupCommonObjectProperties(sphere, transfstack.top(), ShapeSphere);
-                            objects.push_back(sphere);
-                        }
-                        ++numobjects;
+                    validinput = readvals(s, 4, values);
+                    if (validinput) {
+                        Sphere* sphere = new Sphere();
+                        sphere->center = vec3(values[0], values[1], values[2]);
+                        sphere->radius = values[3];                            
+                        setupCommonObjectProperties(sphere, transfstack.top(), ShapeSphere);
+                        objects.push_back(sphere);
                     }
                 }
 
@@ -279,7 +275,7 @@ void readfile(const char* filename)
                 }
                 else if (cmd == "output") {
                     s >> strval;
-                    cout << "antoan output =" << outputLocation << endl;
+                    cout << "antoan output =" << strval << endl;
                     outputLocation = strval;
                 }
                 else if (cmd == "vertex") {
