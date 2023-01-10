@@ -71,7 +71,7 @@ std::string vecToString(vec3 &vec) {
 
 void setupCommonObjectProperties(object* obj, mat4& transform, shape shape) {
     // Set the object's light properties
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 3; i++) {
         (obj->ambient)[i] = ambient[i];
         (obj->diffuse)[i] = diffuse[i];
         (obj->specular)[i] = specular[i];
@@ -79,12 +79,14 @@ void setupCommonObjectProperties(object* obj, mat4& transform, shape shape) {
     }
     obj->shininess = shininess;
     obj->transform = transform;
+    obj->normal_transform = mat3(glm::transpose(glm::inverse(transform)));
+    obj->transform_inverse = glm::inverse(transform);
     obj->type = shape;
 }
 
 void readfile(const char* filename)
 {
-    string str, cmd;
+    string str, cmd, strval;
     ifstream in;
     in.open(filename);
     if (in.is_open()) {
@@ -109,25 +111,13 @@ void readfile(const char* filename)
                 // Process the light, add it to database.
                 // Lighting Command
                 if (cmd == "light") {
-                    if (numused == numLights) { // No more Lights 
-                        cerr << "Reached Maximum Number of Lights " << numused << " Will ignore further lights\n";
-                    }
-                    else {
-                        validinput = readvals(s, 8, values); // Position/color for lts.
-                        if (validinput) {
-
-                            // YOUR CODE FOR HW 2 HERE. 
-                            // Note that values[0...7] shows the read in values 
-                            // Make use of lightposn[] and lightcolor[] arrays in variables.h
-                            // Those arrays can then be used in display too.  
-                            for (i = 0; i < 4; i++) {
-                                lightposn[numused * 4 + i] = values[i];
-                            }
-                            for (i = 0; i < 4; i++) {
-                                lightcolor[numused * 4 + i] = values[4 + i];
-                            }
-                            ++numused;
-                        }
+                    validinput = readvals(s, 8, values); // Position/color for lts.
+                    if (validinput) {
+                        Light* light = new Light();
+                        light->position = vec4(values[0], values[1], values[2], values[3]);
+                        light->color = vec4(values[4], values[5], values[6], values[7]);
+                        light->attenuation = vec3(attenuation);
+                        lights.push_back(light);
                     }
                 }
 
@@ -138,33 +128,33 @@ void readfile(const char* filename)
                 // Note that no transforms/stacks are applied to the colors. 
 
                 else if (cmd == "ambient") {
-                    validinput = readvals(s, 4, values); // colors 
+                    validinput = readvals(s, 3, values); // colors 
                     if (validinput) {
-                        for (i = 0; i < 4; i++) {
+                        for (i = 0; i < 3; i++) {
                             ambient[i] = values[i];
                         }
                     }
                 }
                 else if (cmd == "diffuse") {
-                    validinput = readvals(s, 4, values);
+                    validinput = readvals(s, 3, values);
                     if (validinput) {
-                        for (i = 0; i < 4; i++) {
+                        for (i = 0; i < 3; i++) {
                             diffuse[i] = values[i];
                         }
                     }
                 }
                 else if (cmd == "specular") {
-                    validinput = readvals(s, 4, values);
+                    validinput = readvals(s, 3, values);
                     if (validinput) {
-                        for (i = 0; i < 4; i++) {
+                        for (i = 0; i < 3; i++) {
                             specular[i] = values[i];
                         }
                     }
                 }
                 else if (cmd == "emission") {
-                    validinput = readvals(s, 4, values);
+                    validinput = readvals(s, 3, values);
                     if (validinput) {
-                        for (i = 0; i < 4; i++) {
+                        for (i = 0; i < 3; i++) {
                             emission[i] = values[i];
                         }
                     }
@@ -195,7 +185,8 @@ void readfile(const char* filename)
                         vec3 up(values[6], values[7], values[8]);
                         float fov = values[9];
                         up = Transform::upvector(up, eye - cen);
-
+                        float aspect = ((float)width) / height, zNear = 0.1, zFar = 99.0;
+                        projection = Transform::perspective(fov, aspect, zNear, zFar);
                         camera = new Camera(eye, up, cen, fov);
                     }
                 }
@@ -204,19 +195,13 @@ void readfile(const char* filename)
                 // you can get a sense of how this works.  
                 // Also look at demo.txt to get a sense of why things are done this way.
                 else if (cmd == "sphere") {
-                    if (numobjects == maxobjects) { // No more objects 
-                        cerr << "Reached Maximum Number of Objects " << numobjects << " Will ignore further objects\n";
-                    }
-                    else {
-                        validinput = readvals(s, 1, values);
-                        if (validinput) {
-                            sphere* sph = new sphere();
-                            sph->size = values[0];
-                            
-                            setupCommonObjectProperties(sph, transfstack.top(), ShapeSphere);
-                            objects.push_back(sph);
-                        }
-                        ++numobjects;
+                    validinput = readvals(s, 4, values);
+                    if (validinput) {
+                        Sphere* sphere = new Sphere();
+                        sphere->center = vec3(values[0], values[1], values[2]);
+                        sphere->radius = values[3];                            
+                        setupCommonObjectProperties(sphere, transfstack.top(), ShapeSphere);
+                        objects.push_back(sphere);
                     }
                 }
 
@@ -282,7 +267,76 @@ void readfile(const char* filename)
                         transfstack.pop();
                     }
                 }
-
+                else if (cmd == "maxdepth") {
+                    validinput = readvals(s, 1, values);
+                    if (validinput) {
+                        maxdepth = (int) values[0];
+                    }
+                }
+                else if (cmd == "output") {
+                    s >> strval;
+                    cout << "antoan output =" << strval << endl;
+                    outputLocation = strval;
+                }
+                else if (cmd == "vertex") {
+                    validinput = readvals(s, 3, values);
+                    if (validinput) {
+                        vertices.push_back(new vec3(values[0], values[1], values[2]));
+                    }
+                }
+                else if (cmd == "vertexnormal") {
+                    validinput = readvals(s, 6, values);
+                    if (validinput) {
+                        vertexnormals.push_back(new pair<vec3*, vec3*>(
+                            new vec3(values[0], values[1], values[2]), new vec3(values[3], values[4], values[5])));
+                    }
+                }
+                else if (cmd == "tri") {
+                    validinput = readvals(s, 3, values);
+                    if (validinput) {
+                        Triangle* triangle = new Triangle(values[0], values[1], values[2], /* hasNormals= */ false);
+                        setupCommonObjectProperties(triangle, transfstack.top(), ShapeTriangle);
+                        objects.push_back(triangle);
+                    }
+                }
+                else if (cmd == "trinormal") {
+                    validinput = readvals(s, 3, values);
+                    if (validinput) {
+                        Triangle* triangle = new Triangle(values[0], values[1], values[2], /* hasNormals= */ true);
+                        setupCommonObjectProperties(triangle, transfstack.top(), ShapeTriangle);
+                        objects.push_back(triangle);
+                    }
+                }
+                else if (cmd == "attenuation") {
+                    validinput = readvals(s, 3, values);
+                    if (validinput) {
+                        attenuation = vec3(values[0], values[1], values[2]);
+                    }
+                }
+                else if (cmd == "directional") {
+                /*
+                It should be treated as directional (distant) if w = 0 and as a point light in homogeneous coordinates otherwise. */
+                    validinput = readvals(s, 6, values);
+                    if (validinput) {
+                        Light* light = new Light();
+                        light->position = vec4(values[0], values[1], values[2], 0.0f);
+                        light->attenuation = vec3(1, 0, 0);
+                        light->intensity = 1;
+                        light->color = vec4(values[3], values[4], values[5], 1.0f);
+                        lights.push_back(light);
+                    }
+                }
+                else if (cmd == "point") {
+                    validinput = readvals(s, 6, values);
+                    if (validinput) {
+                        Light* light = new Light();
+                        light->position = vec4(values[0], values[1], values[2], 1.0f);
+                        light->attenuation = vec3(attenuation);
+                        light->intensity = 1;
+                        light->color = vec4(values[3], values[4], values[5], 1.0f);
+                        lights.push_back(light);
+                    }
+                }
                 else {
                     cerr << "Unknown Command: " << cmd << " Skipping \n";
                 }
