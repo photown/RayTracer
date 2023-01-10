@@ -308,18 +308,9 @@ void readfile(const char* filename)
                     }
                 }
                 else if (cmd == "attenuation") {
-                    s >> strval;
-                    if (strval == "const") {
-                        attenuation = vec3(1, 0, 0);
-                    }
-                    else if (strval == "linear") {
-                        attenuation = vec3(0, 1, 0);
-                    }
-                    else if (strval == "quadratic") {
-                        attenuation = vec3(0, 0, 1);
-                    }
-                    else {
-                        cerr << "Invalid attenuation specified: " << strval << endl;
+                    validinput = readvals(s, 3, values);
+                    if (validinput) {
+                        attenuation = vec3(values[0], values[1], values[2]);
                     }
                 }
                 else if (cmd == "directional") {
@@ -329,7 +320,7 @@ void readfile(const char* filename)
                     if (validinput) {
                         Light* light = new Light();
                         light->position = vec4(values[0], values[1], values[2], 0.0f);
-                        light->attenuation = vec3(attenuation);
+                        light->attenuation = vec3(1, 0, 0);
                         light->intensity = 1;
                         light->color = vec4(values[3], values[4], values[5], 1.0f);
                         lights.push_back(light);
