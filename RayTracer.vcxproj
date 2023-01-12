@@ -28,6 +28,7 @@
     <ClCompile Include="objects\Sphere.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="objects\Triangle.cpp" />
+    <ClCompile Include="variables.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />

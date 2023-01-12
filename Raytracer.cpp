@@ -55,18 +55,18 @@ float Raytracer::getAttenuation(float intensity, float distance, vec3 attenuatio
 void Raytracer::Intersect(Ray* ray, std::vector<Object*> objects, Intersection* result) {
     result->isHit = false;
 
-    Ray resultRay = Ray(vec3(), vec3());
+    Ray rayInObjectSpace = Ray(vec3(), vec3());
     Intersection resultIntersection = Intersection();
 
     for (Object* object : objects) {
         vec3 transformedRayOrigin = vec3(object->transform_inverse * vec4(ray->origin, 1.0));
         vec3 transformedRayDirection = vec3(object->transform_inverse * vec4(ray->direction, 0.0));
 
-        resultRay.origin = transformedRayOrigin;
-        resultRay.direction = transformedRayDirection;
+        rayInObjectSpace.origin = transformedRayOrigin;
+        rayInObjectSpace.direction = transformedRayDirection;
         resultIntersection.isHit = false;
 
-        object->Intersect(&resultRay, object, &resultIntersection);
+        object->Intersect(&rayInObjectSpace, object, &resultIntersection);
 
         if (resultIntersection.isHit) {
             vec3 inverseTransformedHitVec = vec3(object->transform * vec4(resultIntersection.hitVector, 1.0));
@@ -113,7 +113,7 @@ void Raytracer::getColor(Camera* camera, std::vector<Object*> objects, std::vect
             lightDir = glm::normalize(vec3(light->position));
         }
         vec3 lightPos;
-        Ray* ray = new Ray(intersection->hitVector + intersection->hitNormal * 0.001f, lightDir); // TODO add the hit vec offset
+        Ray* ray = new Ray(intersection->hitVector + intersection->hitNormal * 0.0001f, lightDir); // TODO add the hit vec offset
         Intersection* lightIntersection = new Intersection();
         Intersect(ray, objects, lightIntersection);
         if (lightIntersection->isHit
@@ -149,7 +149,7 @@ void Raytracer::getColor(Camera* camera, std::vector<Object*> objects, std::vect
 
     if (depth > 0) {
         vec3 mirrorDirection = intersection->rayDir - 2 * glm::dot(intersection->rayDir, intersection->hitNormal) * intersection->hitNormal;
-        Ray* ray = new Ray(intersection->hitVector + intersection->hitNormal * 0.001f, mirrorDirection);
+        Ray* ray = new Ray(intersection->hitVector + intersection->hitNormal * 0.0001f, mirrorDirection);
         Intersection* reflectionIntersection = new Intersection();
         Intersect(ray, objects, reflectionIntersection);
         if (reflectionIntersection->isHit) {
