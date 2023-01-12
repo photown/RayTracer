@@ -1,3 +1,4 @@
+#pragma once
 /*****************************************************************************/
 /* This is the program skeleton for homework 2 in CSE167 by Ravi Ramamoorthi */
 /* Extends HW 1 to deal with shading, more transforms and multiple objects   */
@@ -8,40 +9,16 @@
 // extern, depending on if included in the main program or not.  
 
 #include <vector>
+#include <utility>
+#include <string>
+#include "Camera.h"
+#include "Object.h"
 
 #ifdef MAINPROGRAM 
 #define EXTERN 
 #else 
 #define EXTERN extern 
 #endif
-
-EXTERN int amount; // The amount of rotation for each arrow press
-EXTERN vec3 eye; // The (regularly updated) vector coordinates of the eye 
-EXTERN vec3 up;  // The (regularly updated) vector coordinates of the up 
-
-EXTERN struct Camera {
-    vec3 eyeinit;
-    vec3 upinit;
-    vec3 center;
-    float fovy;
-
-    Camera(vec3 eyeinit, vec3 upinit, vec3 center, float fovy) {
-        this->eyeinit = eyeinit;
-        this->upinit = upinit;
-        this->center = center;
-        this->fovy = fovy;
-    }
-};
-
-EXTERN struct Ray {
-    vec3 origin;
-    vec3 direction;
-
-    Ray(vec3 origin, vec3 direction) {
-        this->origin = origin;
-        this->direction = direction;
-    }
-};
 
 #ifdef MAINPROGRAM 
 vec3 eyeinit(0.0,0.0,5.0) ; // Initial eye position, also for resets
@@ -55,14 +32,6 @@ EXTERN int width, height ;
 EXTERN Camera* camera ; 
 #endif 
 
-EXTERN bool useGlu; // Toggle use of "official" opengl/glm transform vs user 
-EXTERN mat4 projection, modelview; // The mvp matrices
-EXTERN mat3 normal_modelview;
-static enum {view, translate, scale} transop ; // which operation to transform 
-enum shape {ShapeCube, ShapeTriangle, ShapeSphere, ShapeTeapot} ;
-EXTERN float sx, sy ; // the scale in x and y 
-EXTERN float tx, ty ; // the translation in x and y
-
 // Materials (read from file) 
 // With multiple objects, these are colors for each.
 EXTERN float ambient[3] ; 
@@ -72,41 +41,10 @@ EXTERN float emission[3] ;
 EXTERN float shininess ; 
 EXTERN vec3 attenuation;
 
-// For multiple objects, read from a file.  
-EXTERN struct object {
-  shape type ; 
-  float ambient[3] ; 
-  float diffuse[3] ; 
-  float specular[3] ;
-  float emission[3] ; 
-  float shininess ;
-  mat4 transform ; 
-  mat3 normal_transform;
-  mat4 transform_inverse;
-  virtual ~object() {}
-};
 
-EXTERN struct Sphere : object {
-    float radius;
-    vec3 center;
-};
+EXTERN std::vector<Object*> objects;
 
-EXTERN struct Triangle : object {
-    int index1;
-    int index2;
-    int index3;
-    bool hasNormals;
-    Triangle(int index1, int index2, int index3, bool hasNormals) {
-        this->index1 = index1;
-        this->index2 = index2;
-        this->index3 = index3;
-        this->hasNormals = hasNormals;
-    }
-};
-
-EXTERN vector<object*> objects;
-
-EXTERN struct Light {
+struct Light {
     float intensity = 1; // between 0 and 1
     vec4 position; //xyzw
     vec4 color; //rgba
@@ -114,29 +52,9 @@ EXTERN struct Light {
     vec3 attenuation;
 };
 
-EXTERN struct Intersection {
-    bool isHit;
-    object* object;
-    vec3 hitVector;
-    vec3 hitNormal;
-    vec3 rayDir;
-};
-
-EXTERN vector<Light*> lights;
+EXTERN std::vector<Light*> lights;
 EXTERN int maxdepth;
-EXTERN string outputLocation;
+EXTERN std::string outputLocation;
 
-EXTERN vector<vec3*> vertices;
-EXTERN vector<pair<vec3*, vec3*>*> vertexnormals;
-
-// Variables to set uniform params for lighting fragment shader 
-EXTERN unsigned int lightcol ; 
-EXTERN unsigned int lightpos ;
-EXTERN unsigned int numusedcol ;
-EXTERN unsigned int enablelighting ;
-EXTERN unsigned int amientcol ;
-EXTERN unsigned int diffusecol ;
-EXTERN unsigned int specularcol ;
-EXTERN unsigned int emissioncol ;
-EXTERN unsigned int shininesscol ;
-
+EXTERN std::vector<vec3*> vertices;
+EXTERN std::vector<std::pair<vec3*, vec3*>*> vertexnormals;

@@ -19,15 +19,28 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="readfile.cpp" />
+    <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Const.h" />
     <ClInclude Include="include\FreeImage.h" />
+    <ClInclude Include="Intersection.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="Object.h" />
+    <ClInclude Include="Ray.h" />
+    <ClInclude Include="Raytracer.h" />
     <ClInclude Include="readfile.h" />
+    <ClInclude Include="Sphere.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Triangle.h" />
     <ClInclude Include="variables.h" />
   </ItemGroup>
   <ItemGroup>

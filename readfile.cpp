@@ -28,10 +28,16 @@
 #include <deque>
 #include <stack>
 #include "Transform.h" 
+//#include "Camera.h"
+#include "Triangle.h"
+#include "Sphere.h"
+#include "Object.h"
 
 using namespace std;
 #include "variables.h" 
 #include "readfile.h"
+
+struct Camera;
 
 // You may not need to use the following two functions, but it is provided
 // here for convenience
@@ -69,7 +75,7 @@ std::string vecToString(vec3 &vec) {
     return "vec(x=" + std::to_string(vec.x) + ", y=" + std::to_string(vec.y) + ", z=" + std::to_string(vec.z) + ")";
 }
 
-void setupCommonObjectProperties(object* obj, mat4& transform, shape shape) {
+void setupCommonObjectProperties(Object* obj, mat4& transform, Shape shape) {
     // Set the object's light properties
     for (int i = 0; i < 3; i++) {
         (obj->ambient)[i] = ambient[i];
@@ -185,8 +191,6 @@ void readfile(const char* filename)
                         vec3 up(values[6], values[7], values[8]);
                         float fov = values[9];
                         up = Transform::upvector(up, eye - cen);
-                        float aspect = ((float)width) / height, zNear = 0.1, zFar = 99.0;
-                        projection = Transform::perspective(fov, aspect, zNear, zFar);
                         camera = new Camera(eye, up, cen, fov);
                     }
                 }
@@ -346,13 +350,6 @@ void readfile(const char* filename)
 
         // Set up initial position for eye, up and amount
         // As well as booleans 
-
-        eye = camera->eyeinit;
-        up = camera->upinit;
-        amount = 5;
-        sx = sy = 1.0;  // keyboard controlled scales in x and y 
-        tx = ty = 0.0;  // keyboard controllled translation in x and y  
-        useGlu = false; // don't use the glu perspective/lookat fns
     }
     else {
         cerr << "Unable to Open Input Data File " << filename << "\n";
