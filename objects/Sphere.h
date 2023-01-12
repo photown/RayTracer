@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Object.h"
-#include "Intersection.h"
+#include "../Intersection.h"
 
 class Sphere : public Object {
 public:

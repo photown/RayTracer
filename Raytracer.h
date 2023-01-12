@@ -4,7 +4,7 @@
 #include <vector>
 #include "Intersection.h"
 #include "Ray.h"
-#include "Object.h"
+#include "objects/Object.h"
 #include <glm/gtx/norm.hpp>
 #include <iostream>
 #include <cmath>

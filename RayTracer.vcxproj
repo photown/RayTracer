@@ -21,12 +21,13 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Object.cpp" />
+    <ClCompile Include="objects\Object.cpp" />
+    <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="readfile.cpp" />
-    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="objects\Sphere.cpp" />
     <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="objects\Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -34,13 +35,13 @@
     <ClInclude Include="include\FreeImage.h" />
     <ClInclude Include="Intersection.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="Object.h" />
+    <ClInclude Include="objects\Object.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="Raytracer.h" />
     <ClInclude Include="readfile.h" />
-    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="objects\Sphere.h" />
     <ClInclude Include="Transform.h" />
-    <ClInclude Include="Triangle.h" />
+    <ClInclude Include="objects\Triangle.h" />
     <ClInclude Include="variables.h" />
   </ItemGroup>
   <ItemGroup>

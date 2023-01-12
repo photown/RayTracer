@@ -29,9 +29,9 @@
 #include <stack>
 #include "Transform.h" 
 //#include "Camera.h"
-#include "Triangle.h"
-#include "Sphere.h"
-#include "Object.h"
+#include "objects/Triangle.h"
+#include "objects/Sphere.h"
+#include "objects/Object.h"
 
 using namespace std;
 #include "variables.h" 

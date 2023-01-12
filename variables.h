@@ -12,7 +12,7 @@
 #include <utility>
 #include <string>
 #include "Camera.h"
-#include "Object.h"
+#include "objects/Object.h"
 
 #ifdef MAINPROGRAM 
 #define EXTERN 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Const.h"
-#include "Ray.h"
+#include "../Const.h"
+#include "../Ray.h"
 
 enum Shape { 
 	ShapeCube, 
