@@ -1,21 +1,19 @@
 #pragma once
 
 #include "Object.h"
-#include "../variables.h"
+//#include "../variables.h"
 #include "../Intersection.h"
+#include <vector>
 
-struct Triangle : Object {
+class Triangle : public Object {
+public:
     int index1;
     int index2;
     int index3;
+    std::vector<vec3*> vertices;
     bool hasNormals;
 
-    Triangle(int index1, int index2, int index3, bool hasNormals) {
-        this->index1 = index1;
-        this->index2 = index2;
-        this->index3 = index3;
-        this->hasNormals = hasNormals;
-    }
+    Triangle(int index1, int index2, int index3, std::vector<vec3*> vertices, bool hasNormals);
 
     void Intersect(Ray* rayInObjectSpace, Object* object, Intersection* intersection);
 };

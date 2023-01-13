@@ -1,6 +1,6 @@
 #include "Raytracer.h"
 
-unsigned char* Raytracer::Raytrace(Camera* camera, std::vector<Object*> objects, int width, int height) {
+unsigned char* Raytracer::Raytrace(World* world, int width, int height) {
     unsigned char* pixels = new unsigned char[3 * width * height];
     Intersection intersection = Intersection();
     int totalPixels = width * height;
@@ -19,10 +19,10 @@ unsigned char* Raytracer::Raytrace(Camera* camera, std::vector<Object*> objects,
             pixels[x * 3 + y * width * 3] = (unsigned char)0;
             pixels[x * 3 + y * width * 3 + 1] = (unsigned char)0;
             pixels[x * 3 + y * width * 3 + 2] = (unsigned char)0;
-            Ray* ray = RayThruPixel(camera, x, y);
-            Intersect(ray, objects, &intersection);
+            Ray* ray = RayThruPixel(world->camera, x, y, width, height);
+            Intersect(ray, world->objects, &intersection);
             if (intersection.isHit) {
-                getColor(camera, objects, lights, lighttemp, &intersection, maxdepth);
+                getColor(world, lighttemp, &intersection, world->maxdepth);
                 pixels[x * 3 + y * width * 3] = (unsigned char)(lighttemp->x * 255);
                 pixels[x * 3 + y * width * 3 + 1] = (unsigned char)(lighttemp->y * 255);
                 pixels[x * 3 + y * width * 3 + 2] = (unsigned char)(lighttemp->z * 255);
@@ -33,23 +33,22 @@ unsigned char* Raytracer::Raytrace(Camera* camera, std::vector<Object*> objects,
 }
 
 // returns result in world coordinates
-Ray* Raytracer::RayThruPixel(Camera* camera, int x, int y) {
+Ray* Raytracer::RayThruPixel(Camera* camera, int x, int y, int width, int height) {
     const vec3 a = camera->eye - camera->center;
     const vec3 b = camera->up;
     const vec3 w = glm::normalize(a);
     const vec3 u = glm::normalize(glm::cross(b, w));
     const vec3 v = glm::cross(w, u);
-    const float aspect = ((float)width) / height;
     float fovyrad = glm::radians(camera->fovy);
-    const float fovx = 2 * atan(tan(fovyrad * 0.5) * aspect);
+    const float fovx = 2 * atan(tan(fovyrad * 0.5) * camera->aspectRatio);
     const float alpha = tan(fovx * 0.5) * (x + 0.5 - (width * 0.5)) / (width * 0.5);
     const float beta = tan(fovyrad * 0.5) * ((height * 0.5) - y - 0.5) / (height * 0.5);
 
     return new Ray(/* origin= */ camera->eye, /* direction= */ glm::normalize(alpha * u + beta * v - w));
 }
 
-float Raytracer::getAttenuation(float intensity, float distance, vec3 attenuation) {
-    return intensity / (attenuation.x + distance * attenuation.y + distance * distance * attenuation.z);
+float Raytracer::getAttenuation(float intensity, float distance, vec3 attenuationComponents) {
+    return intensity / (attenuationComponents.x + distance * attenuationComponents.y + distance * distance * attenuationComponents.z);
 }
 
 void Raytracer::Intersect(Ray* ray, std::vector<Object*> objects, Intersection* result) {
@@ -83,7 +82,7 @@ void Raytracer::Intersect(Ray* ray, std::vector<Object*> objects, Intersection* 
     }
 }
 
-void Raytracer::getColor(Camera* camera, std::vector<Object*> objects, std::vector<Light*> lights, vec4* result, Intersection* intersection, int depth) {
+void Raytracer::getColor(World* world, vec4* result, Intersection* intersection, int depth) {
     vec4 color = glm::vec4();
     color.x = intersection->object->ambient[0] + intersection->object->emission[0];
     color.y = intersection->object->ambient[1] + intersection->object->emission[1];
@@ -98,11 +97,11 @@ void Raytracer::getColor(Camera* camera, std::vector<Object*> objects, std::vect
         intersection->object->specular[1],
         intersection->object->specular[2]);
 
-    vec3 hitVectorCameraView = vec3(camera->modelview * vec4(intersection->hitVector, 1));
-    vec3 hitNormalCameraView = glm::normalize(camera->normal_modelview * intersection->hitNormal);
+    vec3 hitVectorCameraView = vec3(world->camera->modelview * vec4(intersection->hitVector, 1));
+    vec3 hitNormalCameraView = glm::normalize(world->camera->normal_modelview * intersection->hitNormal);
 
-    for (int i = 0; i < lights.size(); i++) {
-        Light* light = lights[i];
+    for (int i = 0; i < world->lights.size(); i++) {
+        Light* light = world->lights[i];
         vec3 lightDir;
         if (light->position.w != 0) {
             // point light
@@ -115,7 +114,7 @@ void Raytracer::getColor(Camera* camera, std::vector<Object*> objects, std::vect
         vec3 lightPos;
         Ray* ray = new Ray(intersection->hitVector + intersection->hitNormal * 0.0001f, lightDir); // TODO add the hit vec offset
         Intersection* lightIntersection = new Intersection();
-        Intersect(ray, objects, lightIntersection);
+        Intersect(ray, world->objects, lightIntersection);
         if (lightIntersection->isHit
             && (light->position.w == 0 || glm::distance2(intersection->hitVector, vec3(light->position)) > glm::distance2(intersection->hitVector, lightIntersection->hitVector))) {
             continue;
@@ -130,7 +129,7 @@ void Raytracer::getColor(Camera* camera, std::vector<Object*> objects, std::vect
             // directional light
             lightDirCameraView = glm::normalize(vec3(light->lighttransf));
         }
-        vec3 halfAngle = normalize(normalize(vec3(camera->modelview * vec4(-intersection->rayDir, 0.0))) + lightDirCameraView);
+        vec3 halfAngle = normalize(normalize(vec3(world->camera->modelview * vec4(-intersection->rayDir, 0.0))) + lightDirCameraView);
         float attenuation = getAttenuation(light->intensity, glm::distance(vec3(light->lighttransf), hitVectorCameraView), light->attenuation);
         float dot = glm::dot(hitNormalCameraView, lightDirCameraView);
         color +=
@@ -151,10 +150,10 @@ void Raytracer::getColor(Camera* camera, std::vector<Object*> objects, std::vect
         vec3 mirrorDirection = intersection->rayDir - 2 * glm::dot(intersection->rayDir, intersection->hitNormal) * intersection->hitNormal;
         Ray* ray = new Ray(intersection->hitVector + intersection->hitNormal * 0.0001f, mirrorDirection);
         Intersection* reflectionIntersection = new Intersection();
-        Intersect(ray, objects, reflectionIntersection);
+        Intersect(ray, world->objects, reflectionIntersection);
         if (reflectionIntersection->isHit) {
             vec4* result = new vec4();
-            getColor(camera, objects, lights, result, reflectionIntersection, depth - 1);
+            getColor(world, result, reflectionIntersection, depth - 1);
             color += vec4(specular, 1.0) * (*result);
         }
     }

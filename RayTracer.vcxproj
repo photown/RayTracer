@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="objects\Object.cpp" />
     <ClCompile Include="Ray.cpp" />
@@ -28,13 +29,14 @@
     <ClCompile Include="objects\Sphere.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="objects\Triangle.cpp" />
-    <ClCompile Include="variables.cpp" />
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Const.h" />
     <ClInclude Include="include\FreeImage.h" />
     <ClInclude Include="Intersection.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="objects\Object.h" />
     <ClInclude Include="Ray.h" />
@@ -43,7 +45,7 @@
     <ClInclude Include="objects\Sphere.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="objects\Triangle.h" />
-    <ClInclude Include="variables.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FreeImage.dll" />

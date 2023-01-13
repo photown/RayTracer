@@ -20,18 +20,14 @@ using namespace std;
 #include "Ray.h"
 #include "Intersection.h"
 #include "Raytracer.h"
-
+#include "Light.h"
 
 
 // Main variables in the program.  
 #define MAINPROGRAM 
 #include "readfile.h" // prototypes for readfile.cpp  
-#include "variables.h" 
 #include "main.h"
 void display(void) ;  // prototype for display function.  
-
-bool allowGrader = false;
-vec3 tempVec = vec3();
 
 void swapRedBlueChannels24bit(BYTE* freeImagePixels, int totalBytes) {
     int totalPixels = totalBytes / 3;
@@ -64,28 +60,16 @@ void saveScreenshot(string fname, unsigned char* pixels, int width, int height) 
 }
 
 void init() {
-    maxdepth = 5;
-    attenuation = vec3(1, 0, 0);
-    ambient[0] = 0.2;
-    ambient[1] = 0.2;
-    ambient[2] = 0.2;
+
 }
 
-void transformvec4(const vec4& input, vec4& output)
+void transformvec4(Camera* camera, const vec4& input, vec4& output)
 {
     glm::vec4 outputvec = camera->modelview * input;
     output.x = outputvec.x;
     output.y = outputvec.y;
     output.z = outputvec.z;
     output.w = outputvec.w;
-}
-
-void transformvec3(const vec3& input, vec3& output)
-{
-    glm::vec4 outputvec = camera->modelview * glm::vec4(input, 1.0f);
-    output.x = outputvec.x;
-    output.y = outputvec.y;
-    output.z = outputvec.z;
 }
 
 int main(int argc, char* argv[]) {
@@ -97,23 +81,26 @@ int main(int argc, char* argv[]) {
   FreeImage_Initialise();
 
   init();
-  readfile(argv[1]);   
+  Config* config = readfile(argv[1]);
+  World* world = config->world;
 
-  for (int i = 0; i < lights.size(); i++) {
-      transformvec4(lights[i]->position, lights[i]->lighttransf);
+  for (int i = 0; i < world->lights.size(); i++) {
+      transformvec4(world->camera, world->lights[i]->position, world->lights[i]->lighttransf);
   }
 
   cout << "Raytracing..." << endl;
 
   Raytracer raytracer = Raytracer();
-  unsigned char* pixels = raytracer.Raytrace(camera, objects, width, height);
+  unsigned char* pixels = raytracer.Raytrace(world, config->width, config->height);
   
   cout << "Saving screenshot..." << endl;
   
-  saveScreenshot(outputLocation.empty() ? "antoan_test1.png" : outputLocation, pixels, width, height);
+  saveScreenshot(config->outputLocation.empty() ? "raytrace.png" : config->outputLocation, pixels, config->width, config->height);
 
   cout << "Screenshot saved." << endl;
 
+  delete config;
+  delete world;
   delete[] pixels;
   FreeImage_DeInitialise();
   return 0;
