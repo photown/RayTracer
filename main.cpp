@@ -81,26 +81,26 @@ int main(int argc, char* argv[]) {
   FreeImage_Initialise();
 
   init();
-  Config* config = readfile(argv[1]);
-  World* world = config->world;
+  cout << "Reading input file..." << endl;
+  Config config = readfile(argv[1]);
+  World& world = config.world;
 
-  for (int i = 0; i < world->lights.size(); i++) {
-      transformvec4(world->camera, world->lights[i]->position, world->lights[i]->lighttransf);
+  for (int i = 0; i < world.lights->size(); i++) {
+      transformvec4(world.camera, world.lights->at(i)->position, world.lights->at(i)->lighttransf);
   }
 
   cout << "Raytracing..." << endl;
-
+  
   Raytracer raytracer = Raytracer();
-  unsigned char* pixels = raytracer.Raytrace(world, config->width, config->height);
+  unsigned char* pixels = raytracer.Raytrace(world, config.width, config.height);
+  
   
   cout << "Saving screenshot..." << endl;
   
-  saveScreenshot(config->outputLocation.empty() ? "raytrace.png" : config->outputLocation, pixels, config->width, config->height);
+  saveScreenshot(config.outputLocation.empty() ? "raytrace.png" : config.outputLocation, pixels, config.width, config.height);
 
   cout << "Screenshot saved." << endl;
 
-  delete config;
-  delete world;
   delete[] pixels;
   FreeImage_DeInitialise();
   return 0;

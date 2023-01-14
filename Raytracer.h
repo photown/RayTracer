@@ -21,14 +21,12 @@ public:
      *
      * @return a 3 * width * height array containing the R, G and B color components for each pixel.
      */
-    unsigned char* Raytrace(World* world, int width, int height);
+    unsigned char* Raytrace(World& world, int width, int height);
 private:
-    vec4* lighttemp = new vec4();
-
     /**
      * Constructs a {@link Ray} in world coordinates from the {@link Camera} through the "screen"'s (x, y) point.
      */
-    Ray* RayThruPixel(Camera* camera, int x, int y, int width, int height);
+    Ray RayThruPixel(Camera& camera, int x, int y, int width, int height);
 
     /**
      * Calculates the light attenuation using the following formula:
@@ -39,14 +37,14 @@ private:
      * 
      * The idea is that light becomes weaker the further away it is. Point lights have attennuation components (0, 0, 1), whereas directional lights are not affected and have attenuation components (1, 0, 0).
      */
-    float getAttenuation(float intensity, float distance, vec3 attenuationComponents);
+    float getAttenuation(float intensity, float distance, vec3& attenuationComponents);
 
     /**
      * Populates an {@link Intersection} object with intersection data from shooting a given {@link Ray} towards {@code objects}, in world space.
      * 
      * <p>To acommodate object transformations, the ray is transformed into object space, shot through the object, and the hit vector and normal are transformed back into world space.
      */
-    void Intersect(Ray* ray, std::vector<Object*> objects, Intersection* result);
+    void Intersect(Ray& ray, std::vector<Object*>& objects, Intersection& result);
 
     /**
      * Recursively determines the color for a given {@link Intersection} considering other {@link World} data, with recursion depth determined by the depth parameter.
@@ -75,5 +73,5 @@ private:
      * 
      * mirrorDirection = originalDirection - 2 * dot(originalDirection, originalNormal) * originalNormal
      */
-    void getColor(World* world, vec4* result, Intersection* intersection, int depth);
+    void getColor(World& world, vec4& result, Intersection& intersection, int depth);
 };
