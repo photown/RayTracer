@@ -86,11 +86,15 @@ void setupCommonObjectProperties(Object* obj, mat4& transform, Shape shape, vec3
     obj->type = shape;
 }
 
-Config* readfile(const char* filename)
+Config readfile(const char* filename)
 {
-    Config* config = new Config();
-    World* world = new World();
-    config->world = world;
+    Config config = Config();
+    config.world = World();
+    World* world = &config.world;
+    world->objects = new vector<Object*>();
+    world->vertexnormals = new vector<std::pair<vec3*, vec3*>*>();
+    world->vertices = new vector<vec3*>();
+    world->lights = new vector<Light*>();
     string str, cmd, strval;
     ifstream in;
 
@@ -162,8 +166,8 @@ Config* readfile(const char* filename)
                 else if (cmd == "size") {
                     validinput = readvals(s, 2, values);
                     if (validinput) {
-                        config->width = (int)values[0]; 
-                        config->height = (int)values[1];
+                        config.width = (int)values[0]; 
+                        config.height = (int)values[1];
                     }
                 }
                 else if (cmd == "camera") {
@@ -194,7 +198,7 @@ Config* readfile(const char* filename)
                         sphere->center = vec3(values[0], values[1], values[2]);
                         sphere->radius = values[3];                            
                         setupCommonObjectProperties(sphere, transfstack.top(), ShapeSphere, ambient, diffuse, specular, emission, shininess);
-                        world->objects.push_back(sphere);
+                        world->objects->push_back(sphere);
                     }
                 }
 
@@ -269,35 +273,35 @@ Config* readfile(const char* filename)
                 else if (cmd == "output") {
                     s >> strval;
                     cout << "antoan output =" << strval << endl;
-                    config->outputLocation = strval;
+                    config.outputLocation = strval;
                 }
                 else if (cmd == "vertex") {
                     validinput = readvals(s, 3, values);
                     if (validinput) {
-                        world->vertices.push_back(new vec3(values[0], values[1], values[2]));
+                        world->vertices->push_back(new vec3(values[0], values[1], values[2]));
                     }
                 }
                 else if (cmd == "vertexnormal") {
                     validinput = readvals(s, 6, values);
                     if (validinput) {
-                        world->vertexnormals.push_back(new pair<vec3*, vec3*>(
+                        world->vertexnormals->push_back(new pair<vec3*, vec3*>(
                             new vec3(values[0], values[1], values[2]), new vec3(values[3], values[4], values[5])));
                     }
                 }
                 else if (cmd == "tri") {
                     validinput = readvals(s, 3, values);
                     if (validinput) {
-                        Triangle* triangle = new Triangle(values[0], values[1], values[2], world->vertices, /* hasNormals= */ false);
+                        Triangle* triangle = new Triangle(values[0], values[1], values[2], *world->vertices, /* hasNormals= */ false);
                         setupCommonObjectProperties(triangle, transfstack.top(), ShapeTriangle, ambient, diffuse, specular, emission, shininess);
-                        world->objects.push_back(triangle);
+                        world->objects->push_back(triangle);
                     }
                 }
                 else if (cmd == "trinormal") {
                     validinput = readvals(s, 3, values);
                     if (validinput) {
-                        Triangle* triangle = new Triangle(values[0], values[1], values[2], world->vertices, /* hasNormals= */ true);
+                        Triangle* triangle = new Triangle(values[0], values[1], values[2], *world->vertices, /* hasNormals= */ true);
                         setupCommonObjectProperties(triangle, transfstack.top(), ShapeTriangle, ambient, diffuse, specular, emission, shininess);
-                        world->objects.push_back(triangle);
+                        world->objects->push_back(triangle);
                     }
                 }
                 else if (cmd == "attenuation") {
@@ -318,7 +322,7 @@ Config* readfile(const char* filename)
                         light->attenuation = vec3(1, 0, 0);
                         light->intensity = 1;
                         light->color = vec4(values[3], values[4], values[5], 1.0f);
-                        world->lights.push_back(light);
+                        world->lights->push_back(light);
                     }
                 }
                 else if (cmd == "point") {
@@ -329,10 +333,15 @@ Config* readfile(const char* filename)
                         light->attenuation = vec3(attenuation);
                         light->intensity = 1;
                         light->color = vec4(values[3], values[4], values[5], 1.0f);
-                        world->lights.push_back(light);
+                        world->lights->push_back(light);
                     }
                 }
-                else {
+                else if (cmd == "maxverts") {
+                    validinput = readvals(s, 1, values);
+                    if (validinput) {
+                        world->vertices->reserve(values[0]);
+                    }
+                } else {
                     cerr << "Unknown Command: " << cmd << " Skipping \n";
                 }
             }
@@ -345,6 +354,6 @@ Config* readfile(const char* filename)
         cerr << "Unable to Open Input Data File " << filename << "\n";
         throw 2;
     }
-    world->camera->aspectRatio = ((float) config->width) / config->height;
+    world->camera->aspectRatio = ((float) config.width) / config.height;
     return config;
 }

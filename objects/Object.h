@@ -25,5 +25,5 @@ public:
 	mat3 normal_transform;
 	mat4 transform_inverse;
 
-	virtual void Intersect(Ray* rayInObjectSpace, Object* object, Intersection* result) = 0;
+	virtual void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& result) = 0;
 };

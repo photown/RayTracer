@@ -7,12 +7,12 @@
 
 class World {
 public:
-	std::vector<Light*> lights;
+	std::vector<Light*>* lights;
 	Camera* camera;
 
 	int maxdepth;
 
-	std::vector<vec3*> vertices;
-	std::vector<std::pair<vec3*, vec3*>*> vertexnormals;
-	std::vector<Object*> objects;
+	std::vector<vec3*>* vertices;
+	std::vector<std::pair<vec3*, vec3*>*>* vertexnormals;
+	std::vector<Object*>* objects;
 };

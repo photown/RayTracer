@@ -10,5 +10,5 @@ public:
     
     Sphere();
 
-    void Intersect(Ray* rayInObjectSpace, Object* object, Intersection* intersection);
+    void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection);
 };

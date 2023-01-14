@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(vec3 eye, vec3 up, vec3 center, float fovy) {
+Camera::Camera(vec3& eye, vec3& up, vec3& center, float fovy) {
     this->eye = eye;
     this->up = up;
     this->center = center;

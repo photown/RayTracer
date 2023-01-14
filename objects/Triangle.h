@@ -10,10 +10,10 @@ public:
     int index1;
     int index2;
     int index3;
-    std::vector<vec3*> vertices;
+    std::vector<vec3*>* vertices;
     bool hasNormals;
 
-    Triangle(int index1, int index2, int index3, std::vector<vec3*> vertices, bool hasNormals);
+    Triangle(int index1, int index2, int index3, std::vector<vec3*>& vertices, bool hasNormals);
 
-    void Intersect(Ray* rayInObjectSpace, Object* object, Intersection* intersection);
+    void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection);
 };

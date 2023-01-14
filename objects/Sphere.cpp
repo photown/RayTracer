@@ -4,11 +4,11 @@ Sphere::Sphere() {
 
 }
 
-void Sphere::Intersect(Ray* rayInObjectSpace, Object* object, Intersection* intersection) {
+void Sphere::Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection) {
     bool found = false;
     float t;
-    vec3 p0 = rayInObjectSpace->origin;
-    vec3 p1 = rayInObjectSpace->direction;
+    vec3 p0 = rayInObjectSpace.origin;
+    vec3 p1 = rayInObjectSpace.direction;
     float a = glm::dot(p1, p1);
     vec3 center2 = center; // world coords
     float b = 2 * glm::dot(p1, (p0 - center2));
@@ -42,8 +42,8 @@ void Sphere::Intersect(Ray* rayInObjectSpace, Object* object, Intersection* inte
        // continue;
     }
     if (found) {
-        intersection->isHit = true;
-        intersection->hitVector = p0 + p1 * t;
-        intersection->hitNormal = glm::normalize(intersection->hitVector - center2);
+        intersection.isHit = true;
+        intersection.hitVector = p0 + p1 * t;
+        intersection.hitNormal = glm::normalize(intersection.hitVector - center2);
     }
 }
