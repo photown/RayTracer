@@ -80,9 +80,7 @@ void setupCommonObjectProperties(Object* obj, mat4& transform, Shape shape, vec3
     obj->specular = specular;
     obj->emission = emission;
     obj->shininess = shininess;
-    obj->transform = transform;
-    obj->normal_transform = mat3(glm::transpose(glm::inverse(transform)));
-    obj->transform_inverse = glm::inverse(transform);
+    obj->SetTransform(transform);
     obj->type = shape;
 }
 

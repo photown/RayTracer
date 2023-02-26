@@ -2,6 +2,7 @@
 
 #include "Object.h"
 //#include "../variables.h"
+#include "../Box.h"
 #include "../Intersection.h"
 #include <vector>
 
@@ -13,7 +14,9 @@ public:
     std::vector<vec3*>* vertices;
     bool hasNormals;
 
-    Triangle(int index1, int index2, int index3, std::vector<vec3*>& vertices, bool hasNormals);
+    Triangle(int index1, int index2, int index3, std::vector<vec3*>& vertices, bool hasNormal);
 
     void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection);
+
+    Box* CalculateBoundingBox(mat4& transform);
 };

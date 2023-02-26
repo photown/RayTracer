@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Box.h"
 #include "Camera.h"
 #include <vector>
 #include "Intersection.h"
@@ -8,6 +9,7 @@
 #include "World.h"
 #include "objects/Object.h"
 #include <glm/gtx/norm.hpp>
+#include "kdtree/KdTreeNode.h"
 #include <iostream>
 #include <cmath>
 
@@ -21,7 +23,7 @@ public:
      *
      * @return a 3 * width * height array containing the R, G and B color components for each pixel.
      */
-    unsigned char* Raytrace(World& world, int width, int height);
+    unsigned char* Raytrace(World& world, KdTreeNode& kdTreeRoot, int width, int height);
 private:
     /**
      * Constructs a {@link Ray} in world coordinates from the {@link Camera} through the "screen"'s (x, y) point.
@@ -44,7 +46,7 @@ private:
      * 
      * <p>To acommodate object transformations, the ray is transformed into object space, shot through the object, and the hit vector and normal are transformed back into world space.
      */
-    void Intersect(Ray& ray, std::vector<Object*>& objects, Intersection& result);
+    void Intersect(Ray& ray, KdTreeNode& kdTreeRoot, float tStart, float tEnd, std::vector<Object*>& objects, Intersection& result);
 
     /**
      * Recursively determines the color for a given {@link Intersection} considering other {@link World} data, with recursion depth determined by the depth parameter.
@@ -73,5 +75,5 @@ private:
      * 
      * mirrorDirection = originalDirection - 2 * dot(originalDirection, originalNormal) * originalNormal
      */
-    void getColor(World& world, vec4& result, Intersection& intersection, int depth);
+    void getColor(World& world, vec4& result, Intersection& intersection, int depth, KdTreeNode& kdTreeRoot, Box& worldBoundingBox);
 };
