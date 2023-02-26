@@ -1,4 +1,5 @@
 #include "Triangle.h"
+#include <limits>
 
 
 Triangle::Triangle(int index1, int index2, int index3, std::vector<vec3*>& vertices, bool hasNormals) {
@@ -7,6 +8,45 @@ Triangle::Triangle(int index1, int index2, int index3, std::vector<vec3*>& verti
     this->index3 = index3;
     this->vertices = &vertices;
     this->hasNormals = hasNormals;
+}
+
+Box* Triangle::CalculateBoundingBox(mat4& transform) {
+    vec3 bottomLeftBack = 
+        vec3(
+            std::numeric_limits<float>::max(), 
+            std::numeric_limits<float>::max(), 
+            std::numeric_limits<float>::max());
+    vec3 topRightFront = 
+        vec3(
+            std::numeric_limits<float>::min(),
+            std::numeric_limits<float>::min(), 
+            std::numeric_limits<float>::min());
+    vec3 vertex1 = vec3(transform * vec4(*vertices->at(index1), 1.0f));
+    vec3 vertex2 = vec3(transform * vec4(*vertices->at(index2), 1.0f));
+    vec3 vertex3 = vec3(transform * vec4(*vertices->at(index3), 1.0f));
+
+    for (int i = 0; i < 3; i++) {
+        if (vertex1[i] < bottomLeftBack[i]) {
+            bottomLeftBack[i] = vertex1[i];
+        }
+        if (vertex2[i] < bottomLeftBack[i]) {
+            bottomLeftBack[i] = vertex2[i];
+        }
+        if (vertex3[i] < bottomLeftBack[i]) {
+            bottomLeftBack[i] = vertex3[i];
+        }
+
+        if (vertex1[i] > topRightFront[i]) {
+            topRightFront[i] = vertex1[i];
+        }
+        if (vertex2[i] > topRightFront[i]) {
+            topRightFront[i] = vertex2[i];
+        }
+        if (vertex3[i] > topRightFront[i]) {
+            topRightFront[i] = vertex3[i];
+        }
+    }
+    return new Box(bottomLeftBack, topRightFront);
 }
 
 void Triangle::Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection) {

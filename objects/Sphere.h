@@ -2,6 +2,7 @@
 
 #include "Object.h"
 #include "../Intersection.h"
+#include "../Box.h"
 
 class Sphere : public Object {
 public:
@@ -11,4 +12,6 @@ public:
     Sphere();
 
     void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection);
+
+    Box* CalculateBoundingBox(mat4& transform);
 };

@@ -1,7 +1,13 @@
 #include "Sphere.h"
 
 Sphere::Sphere() {
+}
 
+Box* Sphere::CalculateBoundingBox(mat4& transform) {
+    vec3 center = vec3(transform * vec4(this->center, 1.0f));
+    vec3 bottomLeftBack = center - radius;
+    vec3 topRightFront = center + radius;
+    return new Box(bottomLeftBack, topRightFront);
 }
 
 void Sphere::Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection) {

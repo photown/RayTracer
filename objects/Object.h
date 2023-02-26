@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Intersection.h"
+#include "../Box.h"
 #include "../Const.h"
 #include "../Ray.h"
 
@@ -11,6 +13,7 @@ enum Shape {
 };
 
 class Intersection; 
+
 
 class Object {
 public:
@@ -25,5 +28,14 @@ public:
 	mat3 normal_transform;
 	mat4 transform_inverse;
 
+	// world view axis-aligned bounding box
+	Box* axisAlignedBoundingBox;
+	
+	Object();
+
+	void SetTransform(mat4& transform);
+
 	virtual void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& result) = 0;
+
+	virtual Box* CalculateBoundingBox(mat4& transform) = 0;
 };

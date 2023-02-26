@@ -12,6 +12,9 @@
 #include "Transform.h"
 #include <FreeImage.h>
 #include <cmath>
+#include "kdtree/KdTree.h"
+#include <chrono>
+
 
 using namespace std;
 
@@ -72,6 +75,10 @@ void transformvec4(Camera* camera, const vec4& input, vec4& output)
     output.w = outputvec.w;
 }
 
+unsigned long long timeSinceEpochMillisec() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     cerr << "Usage: transforms scenefile [grader input (optional)]\n"; 
@@ -89,12 +96,25 @@ int main(int argc, char* argv[]) {
       transformvec4(world.camera, world.lights->at(i)->position, world.lights->at(i)->lighttransf);
   }
 
-  cout << "Raytracing..." << endl;
-  
-  Raytracer raytracer = Raytracer();
-  unsigned char* pixels = raytracer.Raytrace(world, config.width, config.height);
-  
-  
+  unsigned char* pixels;
+  unsigned long long totalMs = 0;
+  int numRenders = 1;
+  for (int i = 0; i < numRenders; i++) {
+      auto start = timeSinceEpochMillisec();
+      cout << "Constructing KD tree..." << endl;
+
+      KdTreeNode* kdTreeRoot = KdTree::constructTree(*world.objects, /* depth= */ 0);
+
+      cout << "Raytracing..." << endl;
+
+      Raytracer raytracer = Raytracer();
+      pixels = raytracer.Raytrace(world, *kdTreeRoot, config.width, config.height);
+
+      unsigned long long renderTimeMs = (timeSinceEpochMillisec() - start);
+      cout << "Raytracing done in " << renderTimeMs << " milliseconds." << endl;
+      totalMs += renderTimeMs;
+  }
+  cout << "Average time to render is " << (totalMs / numRenders) << " milliseconds." << endl;
   cout << "Saving screenshot..." << endl;
   
   saveScreenshot(config.outputLocation.empty() ? "raytrace.png" : config.outputLocation, pixels, config.width, config.height);
