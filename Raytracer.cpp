@@ -118,10 +118,8 @@ void Raytracer::Intersect(Ray& ray, KdTreeNode& kdTreeRoot, float tStart, float 
     std::vector<Object*> intersectionCandidates;
     KdTree::traverse(kdTreeRoot, ray, intersectionCandidates);
     
-    // for some reason the intersection is different when using the candidates vs all objects - figure out why
-    // 
-    //for (Object* object : intersectionCandidates) {
-    for (Object* object : objects) {
+    for (Object* object : intersectionCandidates) {
+    //for (Object* object : objects) {
         vec3 transformedRayOrigin = vec3(object->transform_inverse * vec4(ray.origin, 1.0));
         vec3 transformedRayDirection = vec3(object->transform_inverse * vec4(ray.direction, 0.0));
 
