@@ -10,6 +10,6 @@ public:
 
 	static KdTreeNode* constructTree(std::vector<Object*>& objects, int depth);
 	
-	static bool traverse(KdTreeNode& node, Ray& ray, std::vector<Object*>& result);
+	static void traverse(KdTreeNode& node, Ray& ray, std::vector<Object*>& result);
 
 };

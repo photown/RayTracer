@@ -68,11 +68,11 @@ KdTreeNode* KdTree::constructTree(std::vector<Object*>& objects, int depth) {
 }
 
 // prepares a list of objects likely to have an intersection
-bool KdTree::traverse(KdTreeNode& node, Ray& ray, std::vector<Object*>& result) {
+void KdTree::traverse(KdTreeNode& node, Ray& ray, std::vector<Object*>& result) {
 	BoxIntersection boxIntersection;
 	node.box.Intersect(ray, boxIntersection);
 	if (!boxIntersection.isHit) {
-		return false;
+		return;
 	}
 
 	for (Object* object : node.triangles) {
@@ -82,13 +82,19 @@ bool KdTree::traverse(KdTreeNode& node, Ray& ray, std::vector<Object*>& result) 
 	bool hit_left = false;
 	bool hit_right = false;
 	if (ray.direction[node.axis] < 0) {
-		hit_left = node.left && traverse(*node.left, ray, result);
-		hit_right = node.right && traverse(*node.right, ray, result);
+		if (node.left) {
+			traverse(*node.left, ray, result);
+		}
+		if (node.right) {
+			traverse(*node.right, ray, result);
+		}
 	}
 	else {
-		hit_right = node.right && traverse(*node.right, ray, result);
-		hit_left = node.left && traverse(*node.left, ray, result);
+		if (node.right) {
+			traverse(*node.right, ray, result);
+		}
+		if (node.left) {
+			traverse(*node.left, ray, result);
+		}
 	}
-
-	return hit_left || hit_right;
 }
