@@ -21,7 +21,7 @@ using namespace std;
 #include "Const.h"
 #include "Camera.h"
 #include "Ray.h"
-#include "Intersection.h"
+#include "RayIntersection.h"
 #include "Raytracer.h"
 #include "Light.h"
 
@@ -32,6 +32,7 @@ using namespace std;
 #include "main.h"
 void display(void) ;  // prototype for display function.  
 
+// Swaps the red and blue channels as FreeImage stores them in OpenGL format which is BGR
 void swapRedBlueChannels24bit(BYTE* freeImagePixels, int totalBytes) {
     int totalPixels = totalBytes / 3;
     for (int i = 0; i < totalPixels; i++) {
@@ -41,7 +42,8 @@ void swapRedBlueChannels24bit(BYTE* freeImagePixels, int totalBytes) {
     }
 }
 
-// pixels must be of size 3*width*height with 8 bits for R, G and B
+// Saves a screenshot to `fname` consisting of `pixels` with size `width` and `height`.
+// The pixels must be of size 3*width*height with 8 bits for R, G and B
 void saveScreenshot(string fname, unsigned char* pixels, int width, int height) {
   BYTE *freeImagePixels = new BYTE[3 * width * height];
   int totalPixels = width * height;

@@ -22,9 +22,9 @@
     <ClCompile Include="AMath.cpp" />
     <ClCompile Include="AMath.h" />
     <ClCompile Include="Box.cpp" />
+    <ClCompile Include="BoxUtils.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="kdtree\KdTree.cpp" />
-    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="objects\Object.cpp" />
     <ClCompile Include="Ray.cpp" />
@@ -33,21 +33,21 @@
     <ClCompile Include="objects\Sphere.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="objects\Triangle.cpp" />
-    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Box.h" />
     <ClInclude Include="BoxIntersection.h" />
+    <ClInclude Include="BoxUtils.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Const.h" />
     <ClInclude Include="include\FreeImage.h" />
-    <ClInclude Include="Intersection.h" />
     <ClInclude Include="kdtree\KdTree.h" />
     <ClInclude Include="kdtree\KdTreeNode.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="objects\Object.h" />
     <ClInclude Include="Ray.h" />
+    <ClInclude Include="RayIntersection.h" />
     <ClInclude Include="Raytracer.h" />
     <ClInclude Include="readfile.h" />
     <ClInclude Include="objects\Sphere.h" />

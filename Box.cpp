@@ -3,34 +3,34 @@
 #include <utility>
 #include "AMath.h"
 
+struct Object;
+
 Box::Box(vec3 bottomLeftBack, vec3 topRightFront) {
 	this->bottomLeftBack = bottomLeftBack;
 	this->topRightFront = topRightFront;
 }
 
-Box Box::Union(Box& box1, Box& box2) {
-	return Box(
-		vec3(
-			std::min(box1.bottomLeftBack.x, box2.bottomLeftBack.x),
-			std::min(box1.bottomLeftBack.y, box2.bottomLeftBack.y),
-			std::min(box1.bottomLeftBack.z, box2.bottomLeftBack.z)),
-		vec3(
-			std::min(box1.topRightFront.x, box2.topRightFront.x),
-			std::min(box1.topRightFront.y, box2.topRightFront.y),
-			std::min(box1.topRightFront.z, box2.topRightFront.z)
-		));
+void Box::ExpandToInclude(Box& box) {
+	this->bottomLeftBack = vec3(
+		std::min(this->bottomLeftBack.x, box.bottomLeftBack.x),
+		std::min(this->bottomLeftBack.y, box.bottomLeftBack.y),
+		std::min(this->bottomLeftBack.z, box.bottomLeftBack.z));
+	this->topRightFront = vec3(
+		std::max(this->topRightFront.x, box.topRightFront.x),
+		std::max(this->topRightFront.y, box.topRightFront.y),
+		std::max(this->topRightFront.z, box.topRightFront.z));
 }
 
 vec3 Box::center() {
 	return (this->topRightFront + this->bottomLeftBack) * 0.5f;
 }
 
+// Checks whether the given ray intersects the box.
 void Box::Intersect(Ray& ray, BoxIntersection& result) {
 	result.isHit = false;
 	float tStart = std::numeric_limits<float>::min();
 	float tEnd = std::numeric_limits<float>::max();
 
-	// TODO: maybe swap topLeft/bottomRight orientation based on ray directi
 	for (int i = 0; i < 3; i++) {
 		if (ray.direction[i] == 0
 			&& (IsLessThan(ray.origin[i], bottomLeftBack[i]) || IsGreaterThan(ray.origin[i], topRightFront[i]))) {

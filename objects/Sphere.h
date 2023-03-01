@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Object.h"
-#include "../Intersection.h"
+#include "../RayIntersection.h"
 #include "../Box.h"
 
 class Sphere : public Object {
@@ -11,7 +11,7 @@ public:
     
     Sphere();
 
-    void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection);
+    void Intersect(Ray& rayInObjectSpace, RayIntersection& intersection);
 
     Box* CalculateBoundingBox(mat4& transform);
 };

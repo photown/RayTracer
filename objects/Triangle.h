@@ -1,9 +1,8 @@
 #pragma once
 
 #include "Object.h"
-//#include "../variables.h"
 #include "../Box.h"
-#include "../Intersection.h"
+#include "../RayIntersection.h"
 #include <vector>
 
 class Triangle : public Object {
@@ -16,7 +15,7 @@ public:
 
     Triangle(int index1, int index2, int index3, std::vector<vec3*>& vertices, bool hasNormal);
 
-    void Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection);
+    void Intersect(Ray& rayInObjectSpace, RayIntersection& intersection);
 
     Box* CalculateBoundingBox(mat4& transform);
 };

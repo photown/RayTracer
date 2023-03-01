@@ -3,6 +3,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include<../AMath.h>
 #include "kdtree/KdTree.h"
+#include <vector>
+#include "BoxUtils.h"
 
 glm::vec3 scale;
 glm::quat rotation;
@@ -12,46 +14,14 @@ glm::vec4 perspective;
 
 unsigned char* Raytracer::Raytrace(World& world, KdTreeNode& kdTreeRoot, int width, int height) {
     unsigned char* pixels = new unsigned char[3 * width * height];
-    Intersection intersection = Intersection();
+    RayIntersection intersection = RayIntersection();
     int totalPixels = width * height;
     int count = 0;
     vec4 lighttemp = vec4();
     int currentPercent;
     int lastPercent = -1;
 
-    Box worldBoundingBox = Box(
-        vec3(
-            std::numeric_limits<float>::max(),
-            std::numeric_limits<float>::max(),
-            std::numeric_limits<float>::max()),
-        vec3(
-            std::numeric_limits<float>::min(),
-            std::numeric_limits<float>::min(),
-            std::numeric_limits<float>::min()));
-    for (Object* object : *world.objects) {
-        vec3 bottomLeftBackWorld = object->axisAlignedBoundingBox->bottomLeftBack;
-        if (IsLessThan(bottomLeftBackWorld.x, worldBoundingBox.bottomLeftBack.x)) {
-            worldBoundingBox.bottomLeftBack.x = bottomLeftBackWorld.x;
-        }
-        if (IsLessThan(bottomLeftBackWorld.y, worldBoundingBox.bottomLeftBack.y)) {
-            worldBoundingBox.bottomLeftBack.y = bottomLeftBackWorld.y;
-        }
-        if (IsLessThan(bottomLeftBackWorld.z, worldBoundingBox.bottomLeftBack.z)) {
-            worldBoundingBox.bottomLeftBack.z = bottomLeftBackWorld.z;
-        }
-
-        vec3 topRightFrontWorld = object->axisAlignedBoundingBox->topRightFront;
-        if (IsGreaterThan(topRightFrontWorld.x, worldBoundingBox.topRightFront.x)) {
-            worldBoundingBox.topRightFront.x = topRightFrontWorld.x;
-        }
-        if (IsGreaterThan(topRightFrontWorld.y, worldBoundingBox.topRightFront.y)) {
-            worldBoundingBox.topRightFront.y = topRightFrontWorld.y;
-        }
-        if (IsGreaterThan(topRightFrontWorld.z, worldBoundingBox.topRightFront.z)) {
-            worldBoundingBox.topRightFront.z = topRightFrontWorld.z;
-        }
-    }
-
+    Box worldBoundingBox = CalculateBoxForObjects(*world.objects);
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -71,10 +41,7 @@ unsigned char* Raytracer::Raytrace(World& world, KdTreeNode& kdTreeRoot, int wid
 
             BoxIntersection boxIntersection = BoxIntersection();
             worldBoundingBox.Intersect(ray, boxIntersection);
-            if (!boxIntersection.isHit) {
-      //          continue;
-            }
-            else {
+            if (boxIntersection.isHit) {
                 float start = boxIntersection.tStart;
                 float end = boxIntersection.tEnd;
                 Intersect(ray, kdTreeRoot, start, end, *world.objects, intersection);
@@ -109,11 +76,11 @@ float Raytracer::getAttenuation(float intensity, float distance, vec3& attenuati
     return intensity / (attenuationComponents.x + distance * attenuationComponents.y + distance * distance * attenuationComponents.z);
 }
 
-void Raytracer::Intersect(Ray& ray, KdTreeNode& kdTreeRoot, float tStart, float tEnd, std::vector<Object*>& objects, Intersection& result) {
+void Raytracer::Intersect(Ray& ray, KdTreeNode& kdTreeRoot, float tStart, float tEnd, std::vector<Object*>& objects, RayIntersection& result) {
     result.isHit = false;
 
     Ray rayInObjectSpace = Ray(vec3(), vec3());
-    Intersection resultIntersection = Intersection();
+    RayIntersection resultIntersection = RayIntersection();
 
     std::vector<Object*> intersectionCandidates;
     KdTree::traverse(kdTreeRoot, ray, intersectionCandidates);
@@ -127,7 +94,7 @@ void Raytracer::Intersect(Ray& ray, KdTreeNode& kdTreeRoot, float tStart, float 
         rayInObjectSpace.direction = transformedRayDirection;
         resultIntersection.isHit = false;
 
-        object->Intersect(rayInObjectSpace, (*object), resultIntersection);
+        object->Intersect(rayInObjectSpace, resultIntersection);
         
         if (resultIntersection.isHit) {
             vec3 inverseTransformedHitVec = vec3(object->transform * vec4(resultIntersection.hitVector, 1.0));
@@ -144,7 +111,7 @@ void Raytracer::Intersect(Ray& ray, KdTreeNode& kdTreeRoot, float tStart, float 
     }
 }
 
-void Raytracer::getColor(World& world, vec4& result, Intersection& intersection, int depth, KdTreeNode& kdTreeRoot, Box& worldBoundingBox) {
+void Raytracer::getColor(World& world, vec4& result, RayIntersection& intersection, int depth, KdTreeNode& kdTreeRoot, Box& worldBoundingBox) {
     vec4 color = glm::vec4();
     color.x = intersection.object->ambient[0] + intersection.object->emission[0];
     color.y = intersection.object->ambient[1] + intersection.object->emission[1];
@@ -161,7 +128,7 @@ void Raytracer::getColor(World& world, vec4& result, Intersection& intersection,
 
     vec3 hitVectorCameraView = vec3(world.camera->modelview * vec4(intersection.hitVector, 1));
     vec3 hitNormalCameraView = glm::normalize(world.camera->normal_modelview * intersection.hitNormal);
-    Intersection lightIntersection = Intersection();
+    RayIntersection lightIntersection = RayIntersection();
     Ray lightRay = Ray(vec3(), vec3());
 
     for (int i = 0; i < world.lights->size(); i++) {
@@ -224,7 +191,7 @@ void Raytracer::getColor(World& world, vec4& result, Intersection& intersection,
     if (depth > 0) {
         vec3 mirrorDirection = intersection.rayDir - 2 * glm::dot(intersection.rayDir, intersection.hitNormal) * intersection.hitNormal;
         Ray ray = Ray(intersection.hitVector + intersection.hitNormal * 0.0001f, mirrorDirection);
-        Intersection reflectionIntersection = Intersection();
+        RayIntersection reflectionIntersection = RayIntersection();
 
         BoxIntersection boxIntersection;
         worldBoundingBox.Intersect(ray, boxIntersection);

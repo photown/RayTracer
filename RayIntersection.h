@@ -5,7 +5,8 @@
 
 struct Object;
 
-struct Intersection {
+// Data class which contains ray-primitive intersection metadata such as whether a hit happened, the hit object, hit vector, hit normal, etc.
+struct RayIntersection {
     bool isHit;
     Object* object;
     vec3 hitVector;

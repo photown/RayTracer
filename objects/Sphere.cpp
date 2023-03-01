@@ -10,7 +10,7 @@ Box* Sphere::CalculateBoundingBox(mat4& transform) {
     return new Box(bottomLeftBack, topRightFront);
 }
 
-void Sphere::Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection) {
+void Sphere::Intersect(Ray& rayInObjectSpace, RayIntersection& intersection) {
     bool found = false;
     float t;
     vec3 p0 = rayInObjectSpace.origin;

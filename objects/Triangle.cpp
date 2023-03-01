@@ -1,7 +1,6 @@
 #include "Triangle.h"
 #include <limits>
 
-
 Triangle::Triangle(int index1, int index2, int index3, std::vector<vec3*>& vertices, bool hasNormals) {
     this->index1 = index1;
     this->index2 = index2;
@@ -49,9 +48,9 @@ Box* Triangle::CalculateBoundingBox(mat4& transform) {
     return new Box(bottomLeftBack, topRightFront);
 }
 
-void Triangle::Intersect(Ray& rayInObjectSpace, Object& object, Intersection& intersection) {
+void Triangle::Intersect(Ray& rayInObjectSpace, RayIntersection& intersection) {
     if (!hasNormals) {
-        // vertices in world coords
+        // vertices in object coords
         vec3 vertex1 = *vertices->at(index1);
         vec3 vertex2 = *vertices->at(index2);
         vec3 vertex3 = *vertices->at(index3);

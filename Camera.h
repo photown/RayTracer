@@ -3,6 +3,8 @@
 #include "Const.h"
 #include "Transform.h"
 
+// Data class which describes the properties of a camera, such as eye, up and 
+// center coordinates, field of view, transformation matrices, aspect ratio, etc.
 class Camera {
 public:
     vec3 eye;
