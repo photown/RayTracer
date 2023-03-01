@@ -125,4 +125,7 @@
     <Library Include="lib\FreeImage.lib" />
     <Library Include="lib\glew32.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="cornell_box_input.txt" />
+  </ItemGroup>
 </Project>

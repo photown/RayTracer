@@ -270,7 +270,7 @@ Config readfile(const char* filename)
                 }
                 else if (cmd == "output") {
                     s >> strval;
-                    cout << "antoan output =" << strval << endl;
+                    cout << "output will be written to: " << strval << endl;
                     config.outputLocation = strval;
                 }
                 else if (cmd == "vertex") {

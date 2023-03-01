@@ -3,8 +3,6 @@
 #include <utility>
 #include "AMath.h"
 
-struct Object;
-
 Box::Box(vec3 bottomLeftBack, vec3 topRightFront) {
 	this->bottomLeftBack = bottomLeftBack;
 	this->topRightFront = topRightFront;
