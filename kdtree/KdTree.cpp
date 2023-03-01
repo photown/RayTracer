@@ -39,6 +39,7 @@ KdTreeNode* KdTree::constructTree(std::vector<Object*>& objects, int depth) {
 // Depending on the direction of the ray, we traverse either the left node first and the right second, or vice-versa.
 // Note that only leaves contain objects.
 // Also note that the ray is in world space.
+// TODO: Probably better to do the object intersection here to return earlier and make use of the traversal order
 void KdTree::traverse(KdTreeNode& node, Ray& ray, std::vector<Object*>& result) {
 	BoxIntersection boxIntersection;
 	node.box.Intersect(ray, boxIntersection);
@@ -50,8 +51,6 @@ void KdTree::traverse(KdTreeNode& node, Ray& ray, std::vector<Object*>& result) 
 		result.push_back(object);
 	}
 
-	bool hit_left = false;
-	bool hit_right = false;
 	if (ray.direction[node.axis] < 0) {
 		if (node.left) {
 			traverse(*node.left, ray, result);
